@@ -2,6 +2,7 @@ from netqasm.logging.glob import get_netqasm_logger, set_log_level
 from netqasm.runtime.application import default_app_instance
 from netqasm.sdk import EPRSocket, Qubit
 from netqasm.sdk.external import NetQASMConnection, simulate_application
+import math
 from game import Game
 from utils import greatest_power_of_two, is_power_of_two
 
@@ -13,12 +14,12 @@ games = []
 - match are sequential, there is no parallelism
 - unbalanced flip are yet to be implemented'''
 
-def qleTournament(players):
+def qleTournament(players, coeff = 1/2):
     print(players)
     while len(players) > 1:
         tmp_list = []
         for i in range(0, len(players), 2):
-            tmp = weak_coin_flip(players[i], players[i+1])
+            tmp = weak_coin_flip(players[i], players[i+1], coeff)
             tmp_list.append(tmp)
         players = tmp_list
     return players[0]
@@ -33,12 +34,16 @@ def quantumLeaderElection(players):
     else:
         w1 = qleTournament(players[:t])
         w2 = quantumLeaderElection(players[t:])
-        return qleTournament([w1,w2])
+        return qleTournament([w1,w2], t/n_players)
 
-def run_sender(name, name_r):
+def run_sender(name, name_r, coeff = 1/2):
     # Setup a connection to QNodeOS (quantum node controller)
     epr_socket = EPRSocket(name_r)
     with NetQASMConnection(name, epr_sockets=[epr_socket]):
+
+        theta = 2 * math.acos(coeff)
+        phi = int(theta * 256 / (2 * math.pi))
+        
         # Create an entangled pair using the EPR socket to bob
         q_ent = epr_socket.create_keep()[0]
         # Measure the qubit
@@ -62,16 +67,17 @@ def run_receiver(name, name_s):
     else:
         winner = name
     game = Game([name_s, name], winner)
+    print(f"WCF: Winner is {winner}")
     games.append(game)
 
 
 def post_function(backend):
     print("--------")
 
-def weak_coin_flip(p1, p2):
-    print(f"WCF: {p1} vs {p2}")
+def weak_coin_flip(p1, p2, coeff):
+    print(f"WCF: {p1} vs {p2} with probability {coeff}")
     def wcf_sender():
-        run_sender(p1, p2)
+        run_sender(p1, p2, coeff)
     def wcf_receiver():
         run_receiver(p2, p1)
 
@@ -88,8 +94,7 @@ def weak_coin_flip(p1, p2):
         enable_logging=False,
     )
     winner = games[len(games)-1].winner
-    print("WCF: ")
-    return 
+    return winner
 
 if __name__ == "__main__":
     #set_log_level("DEBUG")
