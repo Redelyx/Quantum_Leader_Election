@@ -1,8 +1,12 @@
 from netqasm.logging.glob import get_netqasm_logger, set_log_level
 from netqasm.runtime.application import default_app_instance
 from netqasm.sdk import EPRSocket, Qubit
-from netqasm.sdk.external import NetQASMConnection, simulate_application
+from netqasm.sdk.classical_communication.message import StructuredMessage
+from netqasm.sdk.external import NetQASMConnection, Socket, simulate_application
+from netqasm.sdk.toolbox import set_qubit_state
+
 import math
+from math import sqrt
 from game import Game
 from utils import greatest_power_of_two, is_power_of_two
 
@@ -11,8 +15,7 @@ logger = get_netqasm_logger()
 games = []
 
 '''ISSSUES:
-- match are sequential, there is no parallelism
-- unbalanced flip are yet to be implemented'''
+- match are sequential, there is no parallelism'''
 
 def qleTournament(players, coeff = 1/2):
     print(players)
@@ -36,37 +39,64 @@ def quantumLeaderElection(players):
         w2 = quantumLeaderElection(players[t:])
         return qleTournament([w1,w2], t/n_players)
 
-def run_sender(name, name_r, coeff = 1/2):
-    # Setup a connection to QNodeOS (quantum node controller)
-    epr_socket = EPRSocket(name_r)
-    with NetQASMConnection(name, epr_sockets=[epr_socket]):
+def run_sender(sender, receiver, coeff = 1/2):
+    # Create a socket to send classical information
+    socket = Socket(sender, receiver)
 
-        theta = 2 * math.acos(coeff)
-        phi = int(theta * 256 / (2 * math.pi))
-        
-        # Create an entangled pair using the EPR socket to bob
-        q_ent = epr_socket.create_keep()[0]
-        # Measure the qubit
-        m = q_ent.measure()
-    # Print the outcome
-    print(f"SENDER: Outcome is: {m}\n")
+    # Create a EPR socket for entanglement generation
+    epr_socket = EPRSocket(receiver)
 
-def run_receiver(name, name_s):
+    # Initialize the connection to the backend
+    epr_socket = EPRSocket(receiver)
+    with NetQASMConnection(sender, epr_sockets=[epr_socket]) as sender:
+        # Create a qubit to teleport
+        q = Qubit(sender)
+
+        theta = 2 * math.acos(sqrt(coeff))
+        phi = 0
+
+        set_qubit_state(q, phi, theta)
+
+        # Create EPR pairs
+        epr = epr_socket.create_keep()[0]
+
+        # Teleport
+        q.cnot(epr)
+        q.H()
+        m1 = q.measure()
+        m2 = epr.measure()
+
+    socket.send_structured(StructuredMessage("Corrections", (int(m1), int(m2))))
+
+def run_receiver(receiver, sender):
     global games
     winner = -1
+
+    # Create a socket to recv classical information
+    socket = Socket(receiver, sender)
     # Setup a connection to QNodeOS (quantum node controller)
-    epr_socket = EPRSocket(name_s)
-    with NetQASMConnection(name, epr_sockets=[epr_socket]):
-        # Create an entangled pair using the EPR socket to bob
-        q_ent = epr_socket.recv_keep()[0]
-        # Measure the qubit
-        m = q_ent.measure()
-    # Print the outcome
+    epr_socket = EPRSocket(sender)
+    with NetQASMConnection(receiver, epr_sockets=[epr_socket]) as receiver_conn:
+        epr = epr_socket.recv_keep()[0]
+        receiver_conn.flush()
+
+        # Get the corrections
+        m1, m2 = socket.recv_structured().payload
+        if m2 == 1:
+            epr.X()
+        if m1 == 1:
+            epr.Z()
+
+        receiver_conn.flush()
+
+        m=epr.measure()
+
     if m == 0:
-        winner = name_s
+        winner = sender
     else:
-        winner = name
-    game = Game([name_s, name], winner)
+        winner = receiver
+
+    game = Game([sender, receiver], winner)
     print(f"WCF: Winner is {winner}")
     games.append(game)
 
@@ -97,7 +127,6 @@ def weak_coin_flip(p1, p2, coeff):
     return winner
 
 if __name__ == "__main__":
-    #set_log_level("DEBUG")
     nParties = input("Number of parties:")
     players = []
     for num in range(1, int(nParties)+1):
@@ -108,7 +137,6 @@ if __name__ == "__main__":
         players.append(label)
     print(players)
 
-    
     w = quantumLeaderElection(players)
 
     print(f"The winner is {w}!")
