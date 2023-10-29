@@ -1,4 +1,4 @@
-from netqasm.logging.glob import get_netqasm_logger, set_log_level
+from netqasm.logging.glob import get_netqasm_logger
 from netqasm.runtime.application import default_app_instance
 from netqasm.sdk import EPRSocket, Qubit
 from netqasm.sdk.classical_communication.message import StructuredMessage
@@ -7,37 +7,30 @@ from netqasm.sdk.toolbox import set_qubit_state
 
 import math
 from math import sqrt
-from game import Game
-from utils import greatest_power_of_two, is_power_of_two
+from utils import greatest_power_of_two, Game
 
 logger = get_netqasm_logger()
 
 games = []
 
+n_rounds = 0
+
 '''ISSSUES:
 - match are sequential, there is no parallelism'''
 
-def qleTournament(players, coeff = 1/2):
-    print(players)
+def quantumLeaderElection(players, num=1, den=2):
     while len(players) > 1:
-        tmp_list = []
-        for i in range(0, len(players), 2):
-            tmp = weak_coin_flip(players[i], players[i+1], coeff)
-            tmp_list.append(tmp)
-        players = tmp_list
+        print(players)
+        p1 = players[0]
+        p2 = players[1]
+        w = weak_coin_flip(p1, p2, num/den)
+        num+=1
+        den+=1
+        if w==p1:
+            players.remove(p2)
+        else:
+            players.remove(p1)
     return players[0]
-
-def quantumLeaderElection(players):
-    n_players = len(players)
-    if n_players == 1:
-        return players[0]
-    t = greatest_power_of_two(n_players)
-    if t==n_players:
-        return qleTournament(players)
-    else:
-        w1 = qleTournament(players[:t])
-        w2 = quantumLeaderElection(players[t:])
-        return qleTournament([w1,w2], t/n_players)
 
 def run_sender(sender, receiver, coeff = 1/2):
     # Create a socket to send classical information
@@ -105,7 +98,9 @@ def post_function(backend):
     print("--------")
 
 def weak_coin_flip(p1, p2, coeff):
+    global n_rounds
     print(f"WCF: {p1} vs {p2} with probability {coeff}")
+    n_rounds+=1
     def wcf_sender():
         run_sender(p1, p2, coeff)
     def wcf_receiver():
@@ -139,4 +134,4 @@ if __name__ == "__main__":
 
     w = quantumLeaderElection(players)
 
-    print(f"The winner is {w}!")
+    print(f"The winner is {w}! Total WCF rounds: {n_rounds}")

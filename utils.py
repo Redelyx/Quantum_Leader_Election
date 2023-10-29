@@ -1,3 +1,8 @@
+class Game:
+    def __init__(self, players, winner):
+        self.players = players
+        self.winner = winner
+
 def greatest_power_of_two(n):
     if n < 1:
         return None  # Error: n should be a positive integer
