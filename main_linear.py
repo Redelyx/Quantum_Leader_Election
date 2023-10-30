@@ -7,7 +7,7 @@ from netqasm.sdk.toolbox import set_qubit_state
 
 import math
 from math import sqrt
-from utils import greatest_power_of_two, Game
+from utils import Game, PRINT
 
 import time 
 
@@ -19,12 +19,9 @@ games = []
 
 n_rounds = 0
 
-'''ISSSUES:
-- match are sequential, there is no parallelism'''
-
 def quantumLeaderElection(players, num=1, den=2):
     while len(players) > 1:
-        print(players)
+        if PRINT: print(players)
         p1 = players[0]
         p2 = players[1]
         w = weak_coin_flip(p1, p2, num/den)
@@ -94,16 +91,16 @@ def run_receiver(receiver, sender):
         winner = receiver
 
     game = Game([sender, receiver], winner)
-    print(f"WCF: Winner is {winner}")
+    if PRINT: print(f"WCF: Winner is {winner}")
     games.append(game)
 
 
 def post_function(backend):
-    print("--------")
+    if PRINT: print("--------")
 
 def weak_coin_flip(p1, p2, coeff):
     global n_rounds
-    print(f"WCF: {p1} vs {p2} with probability {coeff}")
+    if PRINT: print(f"WCF: {p1} vs {p2} with probability {coeff}")
     n_rounds+=1
     def wcf_sender():
         run_sender(p1, p2, coeff)
@@ -136,7 +133,11 @@ if __name__ == "__main__":
         players.append(label)
     print(players)
 
+    start_time = time.time()
+
     w = quantumLeaderElection(players)
 
+    finish_time = time.time()
+
     print(f"The winner is {w}! Total WCF rounds: {n_rounds}")
-    print("--- Execution time: %s seconds ---" % (time.time() - start_time))
+    print("--- Execution time: %s seconds ---" % (finish_time - start_time))

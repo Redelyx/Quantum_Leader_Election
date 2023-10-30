@@ -1,3 +1,5 @@
+PRINT = False
+
 class Game:
     def __init__(self, players, winner):
         self.players = players
@@ -14,3 +16,8 @@ def greatest_power_of_two(n):
 
 def is_power_of_two(n):
     return (n & (n-1) == 0) and n != 0
+
+
+#manage parallelism
+def unzip_func(a, b):  
+    return a, b

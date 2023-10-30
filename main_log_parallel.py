@@ -6,12 +6,10 @@ from netqasm.sdk.external import NetQASMConnection, Socket, simulate_application
 from netqasm.sdk.toolbox import set_qubit_state
 
 import math
-from math import sqrt
-from utils import greatest_power_of_two, Game
-
 import time 
-
-start_time = time.time()
+from multiprocessing import Pool, Process, Queue
+from math import sqrt
+from utils import greatest_power_of_two, Game, PRINT
 
 logger = get_netqasm_logger()
 
@@ -19,11 +17,18 @@ games = []
 
 n_rounds = 0
 
-'''ISSSUES:
-- match are sequential, there is no parallelism'''
+def distributor(findex, players, index, q):
+    if findex == 0:
+        ps = qleTournament(players[:index])
+        q[0].put(ps)
+        return ps
+    else:
+        ps = quantumLeaderElection(players[index:])
+        q[1].put(ps)
+        return ps        
 
-def qleTournament(players, coeff = 1/2):
-    print(players)
+def qleTournament(players, coeff = 1/2, mem = None):
+    if PRINT: print(players)
     while len(players) > 1:
         tmp_list = []
         for i in range(0, len(players), 2):
@@ -32,7 +37,7 @@ def qleTournament(players, coeff = 1/2):
         players = tmp_list
     return players[0]
 
-def quantumLeaderElection(players):
+def quantumLeaderElection(players, mem = None):
     n_players = len(players)
     if n_players == 1:
         return players[0]
@@ -40,8 +45,14 @@ def quantumLeaderElection(players):
     if t==n_players:
         return qleTournament(players)
     else:
-        w1 = qleTournament(players[:t])
-        w2 = quantumLeaderElection(players[t:])
+        q = []
+        q.append(Queue())
+        q.append(Queue())
+        for i in range(2):
+            p = Process(target=distributor, args=(i, players, t, q))
+            p.start()
+            #p.join()     
+        w1, w2 = q[0].get(), q[1].get()
         return qleTournament([w1,w2], t/n_players)
 
 def run_sender(sender, receiver, coeff = 1/2):
@@ -102,16 +113,16 @@ def run_receiver(receiver, sender):
         winner = receiver
 
     game = Game([sender, receiver], winner)
-    print(f"WCF: Winner is {winner}")
+    if PRINT: print(f"WCF: Winner is {winner}")
     games.append(game)
 
 
 def post_function(backend):
-    print("--------")
+    if PRINT: print("--------")
 
 def weak_coin_flip(p1, p2, coeff):
     global n_rounds
-    print(f"WCF: {p1} vs {p2} with probability {coeff}")
+    if PRINT: print(f"WCF: {p1} vs {p2} with probability {coeff}")
     n_rounds += 1
     def wcf_sender():
         run_sender(p1, p2, coeff)
@@ -144,7 +155,11 @@ if __name__ == "__main__":
         players.append(label)
     print(players)
 
+    start_time = time.time()
+    
     w = quantumLeaderElection(players)
 
+    finish_time = time.time()
+
     print(f"The winner is {w}! Total WCF rounds: {n_rounds}")
-    print("--- Execution time: %s seconds ---" % (time.time() - start_time))
+    print("--- Execution time: %s seconds ---" % (finish_time - start_time))
