@@ -9,6 +9,10 @@ import math
 from math import sqrt
 from utils import greatest_power_of_two, Game
 
+import time 
+
+start_time = time.time()
+
 logger = get_netqasm_logger()
 
 games = []
@@ -135,3 +139,4 @@ if __name__ == "__main__":
     w = quantumLeaderElection(players)
 
     print(f"The winner is {w}! Total WCF rounds: {n_rounds}")
+    print("--- Execution time: %s seconds ---" % (time.time() - start_time))
