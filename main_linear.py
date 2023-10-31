@@ -120,6 +120,7 @@ def weak_coin_flip(p1, p2, coeff):
         enable_logging=False,
     )
     winner = games[len(games)-1].winner
+    print(f"WCF: {p1} vs {p2} with probability {coeff}. Winner is {winner}")
     return winner
 
 if __name__ == "__main__":

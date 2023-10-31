@@ -17,44 +17,6 @@ games = []
 
 n_rounds = 0
 
-def distributor(findex, players, index, q):
-    if findex == 0:
-        ps = qleTournament(players[:index])
-        q[0].put(ps)
-        return ps
-    else:
-        ps = quantumLeaderElection(players[index:])
-        q[1].put(ps)
-        return ps        
-
-def qleTournament(players, coeff = 1/2, mem = None):
-    if PRINT: print(players)
-    while len(players) > 1:
-        tmp_list = []
-        for i in range(0, len(players), 2):
-            tmp = weak_coin_flip(players[i], players[i+1], coeff)
-            tmp_list.append(tmp)
-        players = tmp_list
-    return players[0]
-
-def quantumLeaderElection(players, mem = None):
-    n_players = len(players)
-    if n_players == 1:
-        return players[0]
-    t = greatest_power_of_two(n_players)
-    if t==n_players:
-        return qleTournament(players)
-    else:
-        q = []
-        q.append(Queue())
-        q.append(Queue())
-        for i in range(2):
-            p = Process(target=distributor, args=(i, players, t, q))
-            p.start()
-            #p.join()     
-        w1, w2 = q[0].get(), q[1].get()
-        return qleTournament([w1,w2], t/n_players)
-
 def run_sender(sender, receiver, coeff = 1/2):
     # Create a socket to send classical information
     socket = Socket(sender, receiver)
@@ -120,6 +82,43 @@ def run_receiver(receiver, sender):
 def post_function(backend):
     if PRINT: print("--------")
 
+def distributor(findex, players, index, q):
+    if findex == 0:
+        ps = qleTournament(players[:index])
+        q[0].put(ps)
+        return ps
+    else:
+        ps = quantumLeaderElection(players[index:])
+        q[1].put(ps)
+        return ps        
+
+def qleTournament(players, coeff = 1/2, mem = None):
+    if PRINT: print(players)
+    while len(players) > 1:
+        tmp_list = []
+        for i in range(0, len(players), 2):
+            tmp = weak_coin_flip(players[i], players[i+1], coeff)
+            tmp_list.append(tmp)
+        players = tmp_list
+    return players[0]
+
+def quantumLeaderElection(players, mem = None):
+    n_players = len(players)
+    if n_players == 1:
+        return players[0]
+    t = greatest_power_of_two(n_players)
+    if t==n_players:
+        return qleTournament(players)
+    else:
+        q = []
+        q.append(Queue())
+        q.append(Queue())
+        for i in range(2):
+            p = Process(target=distributor, args=(i, players, t, q))
+            p.start()
+        w1, w2 = q[0].get(), q[1].get()
+        return qleTournament([w1,w2], t/n_players)
+
 def weak_coin_flip(p1, p2, coeff):
     global n_rounds
     if PRINT: print(f"WCF: {p1} vs {p2} with probability {coeff}")
@@ -142,6 +141,7 @@ def weak_coin_flip(p1, p2, coeff):
         enable_logging=False,
     )
     winner = games[len(games)-1].winner
+    print(f"WCF: {p1} vs {p2} with probability {coeff}. Winner is {winner}")
     return winner
 
 if __name__ == "__main__":
