@@ -149,4 +149,4 @@ if __name__ == "__main__":
     print(f"The winner is {w}! Total WCF rounds: {n_rounds}")
     print("--- Execution time: %s seconds ---" % final_time )
     with open("test.txt", "a") as myfile:
-        myfile.write("lin: " + str(final_time) + "\n")
+        myfile.write(f"{nParties} - lin: {str(final_time)}\n")

@@ -7,10 +7,9 @@ from netqasm.sdk.toolbox import set_qubit_state
 
 import sys
 import math
+import time 
 from math import sqrt
 from utils import greatest_power_of_two, Game, DEBUG, PRINT
-
-import time 
 
 logger = get_netqasm_logger()
 
@@ -20,28 +19,6 @@ n_rounds = 0
 
 '''ISSUES:
 - match are sequential, there is no parallelism'''
-
-def qleTournament(players, coeff = 1/2):
-    if DEBUG: print(players)
-    while len(players) > 1:
-        tmp_list = []
-        for i in range(0, len(players), 2):
-            tmp = weak_coin_flip(players[i], players[i+1], coeff)
-            tmp_list.append(tmp)
-        players = tmp_list
-    return players[0]
-
-def quantumLeaderElection(players):
-    n_players = len(players)
-    if n_players == 1:
-        return players[0]
-    t = greatest_power_of_two(n_players)
-    if t==n_players:
-        return qleTournament(players)
-    else:
-        w1 = qleTournament(players[:t])
-        w2 = quantumLeaderElection(players[t:])
-        return qleTournament([w1,w2], t/n_players)
 
 def run_sender(sender, receiver, coeff = 1/2):
     # Create a socket to send classical information
@@ -108,6 +85,28 @@ def run_receiver(receiver, sender):
 def post_function(backend):
     if DEBUG: print("--------")
 
+def qleTournament(players, coeff = 1/2):
+    if DEBUG: print(players)
+    while len(players) > 1:
+        tmp_list = []
+        for i in range(0, len(players), 2):
+            tmp = weak_coin_flip(players[i], players[i+1], coeff)
+            tmp_list.append(tmp)
+        players = tmp_list
+    return players[0]
+
+def quantumLeaderElection(players):
+    n_players = len(players)
+    if n_players == 1:
+        return players[0]
+    t = greatest_power_of_two(n_players)
+    if t==n_players:
+        return qleTournament(players)
+    else:
+        w1 = qleTournament(players[:t])
+        w2 = quantumLeaderElection(players[t:])
+        return qleTournament([w1,w2], t/n_players)
+
 def weak_coin_flip(p1, p2, coeff):
     global n_rounds
     if DEBUG: print(f"WCF: {p1} vs {p2} with probability {coeff}")
@@ -158,4 +157,4 @@ if __name__ == "__main__":
     print(f"The winner is {w}! Total WCF rounds: {n_rounds}")
     print("--- Execution time: %s seconds ---" % final_time )
     with open("test.txt", "a") as myfile:
-        myfile.write("log_s: " + str(final_time) + "\n")
+        myfile.write(f"{nParties} - log_s: {str(final_time)}\n")

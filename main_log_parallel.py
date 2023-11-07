@@ -12,7 +12,7 @@ from multiprocessing import Pool, Process, Queue
 from math import sqrt
 from utils import greatest_power_of_two, Game, DEBUG, PRINT
 
-logger = get_netqasm_logger()
+#logger = get_netqasm_logger()
 
 games = []
 
@@ -110,20 +110,16 @@ def quantumLeaderElection(players, mem = None):
     t = greatest_power_of_two(n_players)
     if t==n_players:
         return qleTournament(players)
-    else:
-        q = []
-        q.append(Queue())
-        q.append(Queue())
-        for i in range(2):
-            p = Process(target=distributor, args=(i, players, t, q))
-            p.start()
-        w1, w2 = q[0].get(), q[1].get()
-        return qleTournament([w1,w2], t/n_players)
+    
+    q = [Queue(), Queue()]
+    for i in range(2):
+        p = Process(target=distributor, args=(i, players, t, q))
+        p.start()
+    w1, w2 = q[0].get(), q[1].get()
+    return qleTournament([w1,w2], t/n_players)
 
 def weak_coin_flip(p1, p2, coeff):
-    global n_rounds
     if DEBUG: print(f"WCF: {p1} vs {p2} with probability {coeff}")
-    n_rounds += 1
     def wcf_sender():
         run_sender(p1, p2, coeff)
     def wcf_receiver():
@@ -167,7 +163,7 @@ if __name__ == "__main__":
     finish_time = time.time()
 
     final_time = finish_time - start_time
-    print(f"The winner is {w}! Total WCF rounds: {n_rounds}")
+    print(f"The winner is {w}!")
     print("--- Execution time: %s seconds ---" % final_time )
     with open("test.txt", "a") as myfile:
-        myfile.write("log_p: " + str(final_time) + "\n")
+        myfile.write(f"{nParties} - log_p: {str(final_time)}\n")
