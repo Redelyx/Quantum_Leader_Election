@@ -5,9 +5,10 @@ from netqasm.sdk.classical_communication.message import StructuredMessage
 from netqasm.sdk.external import NetQASMConnection, Socket, simulate_application
 from netqasm.sdk.toolbox import set_qubit_state
 
+import sys
 import math
 from math import sqrt
-from utils import greatest_power_of_two, Game, PRINT
+from utils import greatest_power_of_two, Game, DEBUG, PRINT
 
 import time 
 
@@ -17,11 +18,11 @@ games = []
 
 n_rounds = 0
 
-'''ISSSUES:
+'''ISSUES:
 - match are sequential, there is no parallelism'''
 
 def qleTournament(players, coeff = 1/2):
-    if PRINT: print(players)
+    if DEBUG: print(players)
     while len(players) > 1:
         tmp_list = []
         for i in range(0, len(players), 2):
@@ -100,16 +101,16 @@ def run_receiver(receiver, sender):
         winner = receiver
 
     game = Game([sender, receiver], winner)
-    if PRINT: print(f"WCF: Winner is {winner}")
+    if DEBUG: print(f"WCF: Winner is {winner}")
     games.append(game)
 
 
 def post_function(backend):
-    if PRINT: print("--------")
+    if DEBUG: print("--------")
 
 def weak_coin_flip(p1, p2, coeff):
     global n_rounds
-    if PRINT: print(f"WCF: {p1} vs {p2} with probability {coeff}")
+    if DEBUG: print(f"WCF: {p1} vs {p2} with probability {coeff}")
     n_rounds += 1
     def wcf_sender():
         run_sender(p1, p2, coeff)
@@ -129,11 +130,15 @@ def weak_coin_flip(p1, p2, coeff):
         enable_logging=False,
     )
     winner = games[len(games)-1].winner
-    print(f"WCF: {p1} vs {p2} with probability {coeff}. Winner is {winner}")
+    if PRINT:
+        print(f"WCF: {p1} vs {p2} with probability {coeff}. Winner is {winner}")
     return winner
 
 if __name__ == "__main__":
-    nParties = input("Number of parties:")
+    if len(sys.argv) > 1:
+        nParties = sys.argv[1]
+    else:
+        nParties = input("Number of parties:")
     players = []
     for num in range(1, int(nParties)+1):
         label = ""
@@ -149,5 +154,8 @@ if __name__ == "__main__":
 
     finish_time = time.time()
 
+    final_time = finish_time - start_time
     print(f"The winner is {w}! Total WCF rounds: {n_rounds}")
-    print("--- Execution time: %s seconds ---" % (finish_time - start_time))
+    print("--- Execution time: %s seconds ---" % final_time )
+    with open("test.txt", "a") as myfile:
+        myfile.write("log_s: " + str(final_time) + "\n")

@@ -1,3 +1,4 @@
+DEBUG = False
 PRINT = False
 
 class Game:
