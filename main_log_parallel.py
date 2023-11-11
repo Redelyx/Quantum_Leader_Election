@@ -160,8 +160,8 @@ if __name__ == "__main__":
         while num > 0:
             num, remainder = divmod(num - 1, 26)
             label = chr(65 + remainder) + label
-            players[0].append(label)
-            players[1].append(0)
+        players[0].append(label)
+        players[1].append(0)
     print(players[0])
 
     for i in range(times):
