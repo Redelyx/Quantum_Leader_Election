@@ -12,27 +12,24 @@ from utils import Game, DEBUG, PRINT
 
 import time 
 
-start_time = time.time()
-
 logger = get_netqasm_logger()
 
 games = []
 
-n_rounds = 0
-
 def quantumLeaderElection(players, num=1, den=2):
-    while len(players) > 1:
-        if DEBUG: print(players)
-        p1 = players[0]
-        p2 = players[1]
+    tmp = players.copy()
+    while len(tmp) > 1:
+        if DEBUG: print(tmp)
+        p1 = tmp[0]
+        p2 = tmp[1]
         w = weak_coin_flip(p1, p2, num/den)
         num+=1
         den+=1
         if w==p1:
-            players.remove(p2)
+            tmp.remove(p2)
         else:
-            players.remove(p1)
-    return players[0]
+            tmp.remove(p1)
+    return tmp[0]
 
 def run_sender(sender, receiver, coeff = 1/2):
     # Create a socket to send classical information
@@ -100,9 +97,7 @@ def post_function(backend):
     if DEBUG: print("--------")
 
 def weak_coin_flip(p1, p2, coeff):
-    global n_rounds
     if DEBUG: print(f"WCF: {p1} vs {p2} with probability {coeff}")
-    n_rounds+=1
     def wcf_sender():
         run_sender(p1, p2, coeff)
     def wcf_receiver():
@@ -148,6 +143,7 @@ if __name__ == "__main__":
     print(players[0])
 
     for i in range(times):
+        print(f"\n----- Run n. {i+1} -----")
         start_time = time.time()
 
         w = quantumLeaderElection(players[0])
@@ -163,12 +159,12 @@ if __name__ == "__main__":
         print(f"The winner is {w}!")
         print("--- Execution time: %s seconds ---" % final_time )
         with open("test.txt", "a") as myfile:
-            myfile.write(f"{nParties} - lin: {str(final_time)}\n")
+            myfile.write(f"{nParties} - log_p: {str(final_time)}\n")
 
 if times>1:
     probs = []
     for i in range(len(players[0])):
-        prob = players[1][i]/times
+        prob = float(players[1][i]/times)
         probs.append(prob)
     print(f"Nodes victory probabilities: {probs}.")
 

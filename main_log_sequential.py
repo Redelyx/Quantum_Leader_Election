@@ -15,8 +15,6 @@ logger = get_netqasm_logger()
 
 games = []
 
-n_rounds = 0
-
 '''ISSUES:
 - match are sequential, there is no parallelism'''
 
@@ -108,9 +106,7 @@ def quantumLeaderElection(players):
         return qleTournament([w1,w2], t/n_players)
 
 def weak_coin_flip(p1, p2, coeff):
-    global n_rounds
     if DEBUG: print(f"WCF: {p1} vs {p2} with probability {coeff}")
-    n_rounds += 1
     def wcf_sender():
         run_sender(p1, p2, coeff)
     def wcf_receiver():
@@ -156,6 +152,7 @@ if __name__ == "__main__":
     print(players[0])
 
     for i in range(times):
+        print(f"\n----- Run n. {i+1} -----")
         start_time = time.time()
 
         w = quantumLeaderElection(players[0])
@@ -171,12 +168,12 @@ if __name__ == "__main__":
         print(f"The winner is {w}!")
         print("--- Execution time: %s seconds ---" % final_time )
         with open("test.txt", "a") as myfile:
-            myfile.write(f"{nParties} - log_s: {str(final_time)}\n")
+            myfile.write(f"{nParties} - log_p: {str(final_time)}\n")
 
 if times>1:
     probs = []
     for i in range(len(players[0])):
-        prob = players[1][i]/times
+        prob = float(players[1][i]/times)
         probs.append(prob)
     print(f"Nodes victory probabilities: {probs}.")
 

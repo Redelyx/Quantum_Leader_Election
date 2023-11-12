@@ -1,5 +1,5 @@
-DEBUG = False
-PRINT = False
+DEBUG = True
+PRINT = True
 
 class Game:
     def __init__(self, players, winner):

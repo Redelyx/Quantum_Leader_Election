@@ -16,8 +16,6 @@ from utils import greatest_power_of_two, Game, DEBUG, PRINT
 
 games = []
 
-n_rounds = 0
-
 def run_sender(sender, receiver, coeff = 1/2):
     # Create a socket to send classical information
     socket = Socket(sender, receiver)
@@ -165,6 +163,7 @@ if __name__ == "__main__":
     print(players[0])
 
     for i in range(times):
+        print(f"\n----- Run n. {i+1} -----")
         start_time = time.time()
 
         w = quantumLeaderElection(players[0])
@@ -185,7 +184,7 @@ if __name__ == "__main__":
 if times>1:
     probs = []
     for i in range(len(players[0])):
-        prob = players[1][i]/times
+        prob = float(players[1][i]/times)
         probs.append(prob)
     print(f"Nodes victory probabilities: {probs}.")
 
