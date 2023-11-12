@@ -1,7 +1,7 @@
 from netqasm.sdk.classical_communication.message import StructuredMessage
 from netqasm.runtime.application import default_app_instance
 from netqasm.sdk import EPRSocket, Qubit
-from netqasm.sdk.external import NetQASMConnection, Socket, simulate_application, get_qubit_state
+from netqasm.sdk.external import NetQASMConnection, Socket, simulate_application
 from netqasm.sdk.toolbox import set_qubit_state
 
 import math
