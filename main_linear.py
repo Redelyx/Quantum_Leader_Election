@@ -41,7 +41,7 @@ if __name__ == "__main__":
         players[1].append(0)
     print(players[0])
 
-    print(f"\n\n----- Start {p_name} -----")
+    print(f"\n\n----- Start {p_name} - nodes: {nParties} -----")
     for i in range(times):
         print(f"\n----- Run n. {i+1}/{times+1} -----")
         start_time = time.time()
