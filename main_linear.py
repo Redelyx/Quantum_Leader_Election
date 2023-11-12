@@ -159,7 +159,7 @@ if __name__ == "__main__":
         print(f"The winner is {w}!")
         print("--- Execution time: %s seconds ---" % final_time )
         with open("test.txt", "a") as myfile:
-            myfile.write(f"{nParties} - log_p: {str(final_time)}\n")
+            myfile.write(f"{nParties} - lin: {str(final_time)}\n")
 
 if times>1:
     probs = []
