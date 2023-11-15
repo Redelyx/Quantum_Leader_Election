@@ -103,3 +103,5 @@ if __name__ == "__main__":
         prob = float(players[1][l]/times)
         probs.append(prob)
     print(f"Nodes victory probabilities: {probs}.")
+    with open("probs.txt", "a") as f:
+        f.write(f"Runs: {i} - Probs: {probs}\n")

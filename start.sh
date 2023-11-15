@@ -1,8 +1,12 @@
 #!/bin/sh
 
-for NODES in 2 3 4 5 6
-do
+$NODES = 3
 echo "---------- NODES: $NODES ----------" >> test.txt
-python3 main_log_parallel.py $NODES 600
-done
+python3 main_log_parallel.py 5 50
+python3 main_log_parallel.py 5 50
+python3 main_log_parallel.py 5 50
+python3 main_log_parallel.py 5 50
+python3 main_log_parallel.py 5 50
+
+
 
