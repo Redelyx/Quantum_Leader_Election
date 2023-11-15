@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     print(f"\n\n----- Start {p_name} - nodes: {nParties} -----")
     for i in range(times):
-        print(f"\n----- Run n. {i+1}/{times+1} -----")
+        print(f"\n----- Run n. {i+1}/{times} -----")
         start_time = time.time()
 
         w = quantumLeaderElection(players[0])
@@ -95,3 +95,8 @@ if __name__ == "__main__":
             sum += mem_timings[i]
         medium_time = sum/times
         print(f"Medium execution time: {medium_time}.")
+        with open("probs.txt", "a") as f:
+            f.write("-------------------\n")
+            f.write(f"Nodes: {nParties}\n")
+            f.write(f"Runs: {times}\n")
+            f.write(f"Probs: {probs}\n")
