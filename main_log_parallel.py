@@ -44,10 +44,12 @@ if __name__ == "__main__":
     p_name = "log_p"
     times = 1
     mem_timings = []
+    probs = []
     players = [[],[]]
 
     if len(sys.argv) == 1:
         nParties = input("Number of parties:")
+        times = int(input("Number of runs: "))
     if len(sys.argv) > 1:
         nParties = sys.argv[1]
     if len(sys.argv) > 2:
@@ -62,6 +64,10 @@ if __name__ == "__main__":
         players[0].append(label)
         players[1].append(0)
     print(players[0])
+
+    with open("probs.txt", "a") as f:
+        f.write("\n-------------------\n")
+        f.write(f"Nodes: {nParties}\n")
 
     print(f"\n\n----- Start {p_name} - nodes: {nParties} -----")
     for i in range(times):
@@ -83,20 +89,17 @@ if __name__ == "__main__":
         with open("test.txt", "a") as myfile:
             myfile.write(f"{nParties} - {p_name}: {str(final_time)}\n")
 
-    if times>1:
-        probs = []
-        for i in range(len(players[0])):
-            prob = float(players[1][i]/times)
-            probs.append(prob)
-        print(f"Nodes victory probabilities: {probs}.")
+        if i%100==99:
+            probs = []
+            for l in range(len(players[0])):
+                prob = float(players[1][l]/i)
+                probs.append(prob)
+            print(f"Nodes victory probabilities: {probs}.")
+            with open("probs.txt", "a") as f:
+                f.write(f"Runs: {i} - Probs: {probs}\n")
 
-        sum = 0
-        for i in range(times):
-            sum += mem_timings[i]
-        medium_time = sum/times
-        print(f"Medium execution time: {medium_time}.")
-        with open("probs.txt", "a") as f:
-            f.write("-------------------\n")
-            f.write(f"Nodes: {nParties}\n")
-            f.write(f"Runs: {times}\n")
-            f.write(f"Probs: {probs}\n")
+    probs = []
+    for l in range(len(players[0])):
+        prob = float(players[1][l]/times)
+        probs.append(prob)
+    print(f"Nodes victory probabilities: {probs}.")
