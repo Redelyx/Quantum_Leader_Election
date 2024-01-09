@@ -18,7 +18,6 @@ def run_sender(sender, receiver, coeff = 1/2):
     epr_socket = EPRSocket(receiver)
 
     # Initialize the connection to the backend
-    epr_socket = EPRSocket(receiver)
     with NetQASMConnection(sender, epr_sockets=[epr_socket]) as sender:
         # Create a qubit to teleport
         q = Qubit(sender)
